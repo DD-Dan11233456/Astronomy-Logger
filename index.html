@@ -28,7 +28,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             background: var(--card-bg);
             padding: 30px;
@@ -79,7 +79,6 @@
         }
 
         button {
-            flex: 1;
             padding: 12px;
             font-size: 16px;
             font-weight: bold;
@@ -89,17 +88,29 @@
             transition: background 0.2s;
         }
 
-        .btn-add { background-color: var(--accent-color); color: #000; }
+        .btn-add { flex: 1; background-color: var(--accent-color); color: #000; }
         .btn-add:hover { background-color: #7dd3fc; }
 
-        .btn-confirm { background-color: var(--success-color); color: #fff; }
+        .btn-confirm { flex: 1; background-color: var(--success-color); color: #fff; }
         .btn-confirm:hover { background-color: #16a34a; }
 
-        .btn-cancel { background-color: var(--danger-color); color: #fff; }
+        .btn-cancel { flex: 1; background-color: var(--danger-color); color: #fff; }
         .btn-cancel:hover { background-color: #dc2626; }
 
         .btn-download { background-color: #a855f7; color: #fff; margin-top: 20px; width: 100%; }
         .btn-download:hover { background-color: #9333ea; }
+
+        .btn-lock { background-color: var(--success-color); color: white; width: 100%; }
+        .btn-lock:hover { background-color: #16a34a; }
+
+        /* Setup/Metadata Area */
+        .setup-box {
+            background-color: #111827;
+            border: 1px dashed var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
 
         /* Confirmation Box Styling */
         .confirmation-box {
@@ -132,6 +143,7 @@
             text-align: left;
             padding: 12px;
             border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
         }
 
         th {
@@ -141,7 +153,7 @@
 
         /* Bottom Instructions Panel */
         .instructions-panel {
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             background-color: var(--instruction-bg);
             border: 1px solid var(--border-color);
@@ -187,65 +199,98 @@
 <div class="container">
     <h1>Astronomy Data Logger</h1>
 
-    <div id="entryForm">
-        <div class="form-group">
-            <label for="body">Object / Celestial Body:</label>
-            <input type="text" id="body" placeholder="e.g., Jupiter, Betelgeuse">
+    <div id="setupSection" class="setup-box">
+        <div class="form-group" style="margin-bottom: 10px;">
+            <label for="sessionLocation">Current Observation Location:</label>
+            <input type="text" id="sessionLocation" placeholder="e.g., Griffith Observatory, LA or 34.112,-118.302">
         </div>
-        <div class="form-group">
-            <label for="longitude">Longitude / Azimuth:</label>
-            <input type="text" id="longitude" placeholder="e.g., 180° S">
-        </div>
-        <div class="form-group">
-            <label for="latitude">Latitude / Altitude:</label>
-            <input type="text" id="latitude" placeholder="e.g., 45° N">
-        </div>
-        <div class="btn-group">
-            <button class="btn-add" onclick="stageObservation()">Log Object</button>
-        </div>
+        <button class="btn-lock" onclick="lockLocation()">Lock Location & Start Session</button>
     </div>
 
-    <div id="confirmationStep" class="confirmation-box hidden">
-        <h3 style="margin-top:0; color: var(--accent-color);">Confirm Details</h3>
-        <p><strong>Object:</strong> <span id="confBody"></span></p>
-        <p><strong>Longitude:</strong> <span id="confLong"></span></p>
-        <p><strong>Latitude:</strong> <span id="confLat"></span></p>
-        <div class="btn-group">
-            <button class="btn-confirm" onclick="commitObservation()">Confirm & Add</button>
-            <button class="btn-cancel" onclick="cancelObservation()">Edit / Cancel</button>
-        </div>
-    </div>
+    <div id="loggerMain" class="hidden">
+        <p style="margin-top: 0; font-size: 14px; color: #94a3b8;">
+            📍 Logging session location: <strong id="activeLocationDisplay" style="color: var(--accent-color);"></strong>
+        </p>
 
-    <div id="tableContainer" class="table-container hidden">
-        <h3>Current Logged Objects</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Object/Body</th>
-                    <th>Longitude</th>
-                    <th>Latitude</th>
-                </tr>
-            </thead>
-            <tbody id="logTableBody">
-                </tbody>
-        </table>
-        <button class="btn-download" onclick="downloadTXT()">Finish & Download TXT File</button>
+        <div id="entryForm">
+            <div class="form-group">
+                <label for="body">Object / Celestial Body:</label>
+                <input type="text" id="body" placeholder="e.g., Jupiter, Betelgeuse">
+            </div>
+            <div class="form-group">
+                <label for="longitude">Longitude / Azimuth:</label>
+                <input type="text" id="longitude" placeholder="e.g., 180° S">
+            </div>
+            <div class="form-group">
+                <label for="latitude">Latitude / Altitude:</label>
+                <input type="text" id="latitude" placeholder="e.g., 45° N">
+            </div>
+            <div class="btn-group">
+                <button class="btn-add" onclick="stageObservation()">Log Object</button>
+            </div>
+        </div>
+
+        <div id="confirmationStep" class="confirmation-box hidden">
+            <h3 style="margin-top:0; color: var(--accent-color);">Confirm Details</h3>
+            <p><strong>Object:</strong> <span id="confBody"></span></p>
+            <p><strong>Longitude:</strong> <span id="confLong"></span></p>
+            <p><strong>Latitude:</strong> <span id="confLat"></span></p>
+            <p><strong>Timestamp (Auto):</strong> <span id="confTime" style="color: #94a3b8;"></span></p>
+            <div class="btn-group">
+                <button class="btn-confirm" onclick="commitObservation()">Confirm & Add</button>
+                <button class="btn-cancel" onclick="cancelObservation()">Edit / Cancel</button>
+            </div>
+        </div>
+
+        <div id="tableContainer" class="table-container hidden">
+            <h3>Current Logged Objects</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Location</th>
+                        <th>Object/Body</th>
+                        <th>Longitude</th>
+                        <th>Latitude</th>
+                    </tr>
+                </thead>
+                <tbody id="logTableBody">
+                    </tbody>
+            </table>
+            <button class="btn-download" onclick="downloadTXT()">Finish & Download TXT File</button>
+        </div>
     </div>
 </div>
 
 <div class="instructions-panel">
     <h2>How to Use This Logger</h2>
     <ol>
-        <li><strong>Enter the Celestial Data:</strong> Fill out the object name along with its longitude/azimuth and latitude/altitude in the input boxes.</li>
-        <li><strong>Review Your Entry:</strong> Click the <code>Log Object</code> button. A confirmation area will appear displaying your typed data to double-check for errors.</li>
-        <li><strong>Save or Modify:</strong> Click <code>Confirm & Add</code> to officially push the entry to your active table session, or click <code>Edit / Cancel</code> to return to the input screen and make fixes.</li>
-        <li><strong>Export Your Log:</strong> Once you have added all your coordinates, scroll down to the active list and click the purple <code>Finish & Download TXT File</code> button. This compiles your session data into a neat, padded text document saved straight to your downloads folder.</li>
+        <li><strong>Set Location First:</strong> Type in your current observation point or coordinates and click <code>Lock Location & Start Session</code> to open up the logging toolkit.</li>
+        <li><strong>Enter Celestial Data:</strong> Fill out the object name along with its directional coordinates.</li>
+        <li><strong>Review Your Entry:</strong> Click the <code>Log Object</code> button. The web page will capture the exact current timestamp and show you a final confirmation preview window.</li>
+        <li><strong>Save or Modify:</strong> Click <code>Confirm & Add</code> to push the item into your active list, or click <code>Edit / Cancel</code> to safely go back and correct typos.</li>
+        <li><strong>Export Your Log:</strong> Click the purple <code>Finish & Download TXT File</code> button at the bottom of the table to generate a fully organized tracking document saved directly to your hard drive.</li>
     </ol>
 </div>
 
 <script>
     let observations = [];
     let tempObservation = null;
+    let loggedLocation = "";
+
+    function lockLocation() {
+        const locInput = document.getElementById('sessionLocation').value.trim();
+        if (!locInput) {
+            alert("Please enter a location before starting your observation session.");
+            return;
+        }
+        loggedLocation = locInput;
+        document.getElementById('activeLocationDisplay').textContent = loggedLocation;
+        
+        // Hide setup box, reveal log interface
+        document.getElementById('setupSection').classList.add('hidden');
+        document.getElementById('loggerMain').classList.remove('hidden');
+    }
 
     function stageObservation() {
         const bodyInput = document.getElementById('body').value.trim();
@@ -257,11 +302,27 @@
             return;
         }
 
-        tempObservation = { body: bodyInput, long: longInput, lat: latInput };
+        // Capture local system date and time right at the moment of tracking
+        const now = new Date();
+        const timestampStr = now.getFullYear() + '-' + 
+            String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+            String(now.getDate()).padStart(2, '0') + ' ' + 
+            String(now.getHours()).padStart(2, '0') + ':' + 
+            String(now.getMinutes()).padStart(2, '0') + ':' + 
+            String(now.getSeconds()).padStart(2, '0');
+
+        tempObservation = { 
+            timestamp: timestampStr,
+            location: loggedLocation,
+            body: bodyInput, 
+            long: longInput, 
+            lat: latInput 
+        };
 
         document.getElementById('confBody').textContent = tempObservation.body;
         document.getElementById('confLong').textContent = tempObservation.long;
         document.getElementById('confLat').textContent = tempObservation.lat;
+        document.getElementById('confTime').textContent = tempObservation.timestamp;
 
         document.getElementById('entryForm').classList.add('hidden');
         document.getElementById('confirmationStep').classList.remove('hidden');
@@ -298,7 +359,9 @@
         observations.forEach(obs => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${escapeHTML(obs.body)}</td>
+                <td style="color: #94a3b8; font-family: monospace;">${escapeHTML(obs.timestamp)}</td>
+                <td>${escapeHTML(obs.location)}</td>
+                <td style="font-weight: bold; color: var(--accent-color);">${escapeHTML(obs.body)}</td>
                 <td>${escapeHTML(obs.long)}</td>
                 <td>${escapeHTML(obs.lat)}</td>
             `;
@@ -320,17 +383,17 @@
 
         const pad = (str, length) => str.padEnd(length, ' ').substring(0, length);
 
-        let txtContent = "=====================================================\n";
-        txtContent += "               ASTRONOMICAL OBSERVATIONS             \n";
-        txtContent += "=====================================================\n";
-        txtContent += `${pad("Object/Body", 20)} | ${pad("Longitude", 15)} | ${pad("Latitude", 15)}\n`;
-        txtContent += "-".repeat(57) + "\n";
+        let txtContent = "=========================================================================================\n";
+        txtContent += "                               ASTRONOMICAL OBSERVATIONS                                 \n";
+        txtContent += "=========================================================================================\n";
+        txtContent += `${pad("Date & Time", 21)} | ${pad("Location", 22)} | ${pad("Object/Body", 18)} | ${pad("Longitude", 12)} | ${pad("Latitude", 12)}\n`;
+        txtContent += "-".repeat(97) + "\n";
 
         observations.forEach(obs => {
-            txtContent += `${pad(obs.body, 20)} | ${pad(obs.long, 15)} | ${pad(obs.lat, 15)}\n`;
+            txtContent += `${pad(obs.timestamp, 21)} | ${pad(obs.location, 22)} | ${pad(obs.body, 18)} | ${pad(obs.long, 12)} | ${pad(obs.lat, 12)}\n`;
         });
 
-        txtContent += "=====================================================\n";
+        txtContent += "=========================================================================================\n";
         txtContent += `Total Objects Logged: ${observations.length}\n`;
 
         const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
