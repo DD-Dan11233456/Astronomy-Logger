@@ -103,6 +103,16 @@
         .btn-lock { background-color: var(--success-color); color: white; width: 100%; }
         .btn-lock:hover { background-color: #16a34a; }
 
+        /* Small red edit button for table */
+        .btn-edit {
+            background-color: var(--danger-color);
+            color: white;
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+        .btn-edit:hover { background-color: #dc2626; }
+
         .setup-box {
             background-color: #111827;
             border: 1px dashed var(--border-color);
@@ -225,6 +235,7 @@
         </div>
 
         <div id="entryForm">
+            <h3 id="formActionHeading" style="margin-top: 0; color: var(--accent-color);">Log New Object</h3>
             <div class="form-group">
                 <label for="body">Object / Celestial Body:</label>
                 <input type="text" id="body" placeholder="e.g., Jupiter, Betelgeuse">
@@ -238,7 +249,7 @@
                 <input type="text" id="latitude" placeholder="e.g., 45° N">
             </div>
             <div class="btn-group">
-                <button class="btn-add" onclick="stageObservation()">Log Object</button>
+                <button class="btn-add" id="submitBtn" onclick="stageObservation()">Log Object</button>
             </div>
         </div>
 
@@ -247,7 +258,7 @@
             <p><strong>Object:</strong> <span id="confBody"></span></p>
             <p><strong>Longitude:</strong> <span id="confLong"></span></p>
             <p><strong>Latitude:</strong> <span id="confLat"></span></p>
-            <p><strong>Located Time (Auto):</strong> <span id="confTime" style="color: #38bdf8;"></span></p>
+            <p><strong>Timestamp (New/Updated):</strong> <span id="confTime" style="color: #38bdf8;"></span></p>
             <div class="btn-group">
                 <button class="btn-confirm" onclick="commitObservation()">Confirm & Add</button>
                 <button class="btn-cancel" onclick="cancelObservation()">Edit / Cancel</button>
@@ -263,6 +274,7 @@
                         <th>Object/Body</th>
                         <th>Longitude</th>
                         <th>Latitude</th>
+                        <th style="width: 80px;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="logTableBody">
@@ -276,11 +288,12 @@
 <div class="instructions-panel">
     <h2>How to Use This Logger</h2>
     <ol>
-        <li><strong>Set Location First:</strong> Type your tracking area and hit <code>Lock Location & Start Session</code>. This sets your global location and captures your exact session <strong>Start Time</strong>.</li>
-        <li><strong>Enter Celestial Data:</strong> Type your target object information into the coordinates fields.</li>
-        <li><strong>Review Your Entry:</strong> Click <code>Log Object</code>. The system automatically captures the exact timestamp the object was **Located**. Check the parameters on screen.</li>
-        <li><strong>Save or Modify:</strong> Click <code>Confirm & Add</code> to populate your spreadsheet list, or click <code>Edit / Cancel</code> to safely roll back and re-type the metrics.</li>
-        <li><strong>Export Your Log:</strong> Once completed with all records, click the purple <code>Finish & Download TXT File</code> button. This stamps your final session **End Time**, computes runtime, and generates a formatted logging sheet file.</li>
+        <li><strong>Set Location First:</strong> Type your tracking area and hit <code>Lock Location & Start Session</code>. This captures your exact session <strong>Start Time</strong>.</li>
+        <li><strong>Enter Celestial Data:</strong> Type your target object information into the coordinate fields.</li>
+        <li><strong>Review Your Entry:</strong> Click <code>Log Object</code>. The system automatically captures the timestamp. Check your metrics.</li>
+        <li><strong>Save or Modify:</strong> Click <code>Confirm & Add</code> to populate your spreadsheet list.</li>
+        <li><strong>Re-edit Any Row:</strong> Need to change a logged object? Click its red <code>Edit</code> button in the table. The info will return to the input boxes. When you re-submit, its timestamp **automatically updates to the current time**.</li>
+        <li><strong>Export Your Log:</strong> Click the purple <code>Finish & Download TXT File</code> button at the bottom of the table to generate your clean final tracker document.</li>
     </ol>
 </div>
 
@@ -289,6 +302,9 @@
     let tempObservation = null;
     let loggedLocation = "";
     let sessionStartTimeStr = "";
+    
+    // Tracks if we are editing an item (-1 means new item, numbers 0+ mean editing that array index)
+    let editingIndex = -1; 
 
     function generateTimestamp() {
         const now = new Date();
@@ -326,6 +342,7 @@
             return;
         }
 
+        // Capture a brand new fresh timestamp right now
         tempObservation = { 
             timestamp: generateTimestamp(),
             body: bodyInput, 
@@ -343,7 +360,17 @@
     }
 
     function commitObservation() {
-        observations.push(tempObservation);
+        if (editingIndex > -1) {
+            // Overwrite existing data with the updated object and new time
+            observations[editingIndex] = tempObservation;
+            editingIndex = -1; // Reset mode
+            document.getElementById('formActionHeading').textContent = "Log New Object";
+            document.getElementById('submitBtn').textContent = "Log Object";
+        } else {
+            // Create brand new entry
+            observations.push(tempObservation);
+        }
+
         updateTable();
         clearInputs();
 
@@ -360,6 +387,23 @@
         tempObservation = null;
     }
 
+    function editRow(index) {
+        editingIndex = index;
+        const obs = observations[index];
+
+        // Populate the input forms with selected row values
+        document.getElementById('body').value = obs.body;
+        document.getElementById('longitude').value = obs.long;
+        document.getElementById('latitude').value = obs.lat;
+
+        // Visual alerts showing the user they are in modifier mode
+        document.getElementById('formActionHeading').textContent = `Editing Item #${index + 1} (Time will refresh)`;
+        document.getElementById('submitBtn').textContent = "Apply & Update Changes";
+
+        // Scroll smoothly to form entry spot
+        document.getElementById('entryForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
     function clearInputs() {
         document.getElementById('body').value = '';
         document.getElementById('longitude').value = '';
@@ -370,13 +414,16 @@
         const tbody = document.getElementById('logTableBody');
         tbody.innerHTML = '';
 
-        observations.forEach(obs => {
+        observations.forEach((obs, index) => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td style="color: #94a3b8; font-family: monospace;">${escapeHTML(obs.timestamp)}</td>
                 <td style="font-weight: bold; color: var(--accent-color);">${escapeHTML(obs.body)}</td>
                 <td>${escapeHTML(obs.long)}</td>
                 <td>${escapeHTML(obs.lat)}</td>
+                <td>
+                    <button class="btn-edit" onclick="editRow(${index})">Edit</button>
+                </td>
             `;
             tbody.appendChild(row);
         });
@@ -429,5 +476,5 @@
 </script>
 
 </body>
-</html>  
+</html> 
  
