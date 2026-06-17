@@ -186,12 +186,12 @@
             color: var(--accent-color);
         }
 
-        .global-notes-section {
+        .notes-section {
             background-color: #111827;
             border: 1px solid var(--border-color);
             padding: 20px;
             border-radius: 8px;
-            margin-top: 30px;
+            margin-top: 25px;
         }
 
         .instructions-panel {
@@ -338,9 +338,14 @@
                     </tbody>
             </table>
 
-            <div class="global-notes-section">
-                <label for="globalSessionNotes" style="color: var(--accent-color); font-size: 16px;">📁 Global Session Notes (Weather, Equipment, Conditions):</label>
-                <textarea id="globalSessionNotes" rows="4" placeholder="Write any overarching thoughts regarding tonight's tracking session here... (These save straight to your final text file)"></textarea>
+            <div class="notes-section" style="margin-top: 30px;">
+                <label for="globalSessionNotes" style="color: var(--accent-color); font-size: 16px;">📁 Global Session Setup Notes (Weather, Equipment, Conditions):</label>
+                <textarea id="globalSessionNotes" rows="3" placeholder="Jot down atmospheric notes, telescope models, filters, or initial field setups here... (Saves to top of text file)"></textarea>
+            </div>
+
+            <div class="notes-section">
+                <label for="postSessionNotes" style="color: #a855f7; font-size: 16px;">📝 Post-Session Summary & General Notes (Any Kind):</label>
+                <textarea id="postSessionNotes" rows="5" placeholder="Write any miscellaneous findings, concluding remarks, or freeform notes of any kind here... (Saves at the very bottom of the text file, under the table)"></textarea>
             </div>
 
             <button class="btn-download" onclick="downloadTXT()">Finish & Download TXT File</button>
@@ -351,12 +356,11 @@
 <div class="instructions-panel">
     <h2>How to Use This Logger</h2>
     <ol>
-        <li><strong>Configure Session Preferences:</strong> Type your target tracking location. Select whether to use your system's <code>Auto</code> time or pick a specific geographical region under <code>Manual Select</code>, then lock properties.</li>
-        <li><strong>Enter Celestial Data & Notes:</strong> Type your object coordinates. You can add specific contextual commentary for that object inside the <code>Object Observation Notes</code> field.</li>
-        <li><strong>Review and Save Your Entry:</strong> Click <code>Log Object</code>, check metrics on screen, and confirm.</li>
-        <li><strong>Re-edit Rows:</strong> Hit a row's red <code>Edit</code> button to pull values and notes back into inputs. Resubmitting will update that item and refresh the item's individual time log instantly.</li>
-        <li><strong>Add Overarching Notes:</strong> Use the large <code>Global Session Notes</code> text box at the bottom of the log table to describe atmospheric clarity, wind speed, telescope models, or general field events.</li>
-        <li><strong>Export Your Log:</strong> Click <code>Finish & Download TXT File</code> to compile all specific elements, runtime stats, table metrics, and your large text block neatly into a localized asset document.</li>
+        <li><strong>Configure Session Preferences:</strong> Type your target tracking location and select a time zone preference before locking configurations.</li>
+        <li><strong>Enter Celestial Data & Notes:</strong> Log your target coordinates, using the optional <code>Object Observation Notes</code> field for individual row commentary.</li>
+        <li><strong>Re-edit Rows:</strong> Hit a row's red <code>Edit</code> button to fix typos. The individual timestamp will update automatically.</li>
+        <li><strong>Utilize Note Panels:</strong> Use the top text field for environment parameters, and the large purple <code>Post-Session Summary</code> area for multi-line freeform notes of any kind.</li>
+        <li><strong>Export Your Log:</strong> Click <code>Finish & Download TXT File</code> to build a clean spreadsheet layout containing your dynamic table framed by your setup metadata and ending remarks.</li>
     </ol>
 </div>
 
@@ -542,7 +546,8 @@
         }
 
         const sessionEndTimeStr = generateTimestamp();
-        const globalNotesVal = document.getElementById('globalSessionNotes').value.trim() || "No custom session notes recorded.";
+        const globalNotesVal = document.getElementById('globalSessionNotes').value.trim() || "No custom session setup notes recorded.";
+        const postNotesVal = document.getElementById('postSessionNotes').value.trim() || "No dynamic summary notes recorded.";
         const pad = (str, length) => str.padEnd(length, ' ').substring(0, length);
 
         let txtContent = "=========================================================================================================================\n";
@@ -553,7 +558,7 @@
         txtContent += ` Session Started:   ${sessionStartTimeStr}\n`;
         txtContent += ` Session Ended:     ${sessionEndTimeStr}\n`;
         txtContent += "-------------------------------------------------------------------------------------------------------------------------\n";
-        txtContent += ` GLOBAL SESSION NOTES:\n ${globalNotesVal.replace(/\n/g, '\n ')}\n`;
+        txtContent += ` GLOBAL SESSION SETUP NOTES:\n ${globalNotesVal.replace(/\n/g, '\n ')}\n`;
         txtContent += "=========================================================================================================================\n";
         txtContent += `${pad("Time Located", 21)} | ${pad("Object/Body", 18)} | ${pad("Longitude", 12)} | ${pad("Latitude", 12)} | Notes\n`;
         txtContent += "-".repeat(121) + "\n";
@@ -564,6 +569,14 @@
 
         txtContent += "=========================================================================================================================\n";
         txtContent += `Total Objects Logged: ${observations.length}\n`;
+        txtContent += "=========================================================================================================================\n\n";
+        
+        // Appending the new user element cleanly beneath the primary database table output block
+        txtContent += "=========================================================================================================================\n";
+        txtContent += " POST-SESSION SUMMARY & GENERAL NOTES:\n";
+        txtContent += "=========================================================================================================================\n";
+        txtContent += ` ${postNotesVal.replace(/\n/g, '\n ')}\n`;
+        txtContent += "=========================================================================================================================\n";
 
         const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
