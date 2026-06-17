@@ -28,7 +28,7 @@
         }
 
         .container {
-            max-width: 950px;
+            max-width: 1100px;
             width: 100%;
             background: var(--card-bg);
             padding: 30px;
@@ -56,7 +56,7 @@
             font-weight: 600;
         }
 
-        input[type="text"], select {
+        input[type="text"], select, textarea {
             width: 100%;
             padding: 12px;
             border: 1px solid var(--border-color);
@@ -67,12 +67,16 @@
             box-sizing: border-box;
         }
 
-        input[type="text"]:focus, select:focus {
+        textarea {
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--accent-color);
         }
 
-        /* Flex container for side-by-side selectors */
         .flex-row {
             display: flex;
             gap: 15px;
@@ -182,8 +186,16 @@
             color: var(--accent-color);
         }
 
+        .global-notes-section {
+            background-color: #111827;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
         .instructions-panel {
-            max-width: 950px;
+            max-width: 1100px;
             width: 100%;
             background-color: var(--instruction-bg);
             border: 1px solid var(--border-color);
@@ -277,13 +289,19 @@
                 <label for="body">Object / Celestial Body:</label>
                 <input type="text" id="body" placeholder="e.g., Jupiter, Betelgeuse">
             </div>
-            <div class="form-group">
-                <label for="longitude">Longitude / Azimuth:</label>
-                <input type="text" id="longitude" placeholder="e.g., 180° S">
+            <div class="flex-row">
+                <div class="form-group">
+                    <label for="longitude">Longitude / Azimuth:</label>
+                    <input type="text" id="longitude" placeholder="e.g., 180° S">
+                </div>
+                <div class="form-group">
+                    <label for="latitude">Latitude / Altitude:</label>
+                    <input type="text" id="latitude" placeholder="e.g., 45° N">
+                </div>
             </div>
             <div class="form-group">
-                <label for="latitude">Latitude / Altitude:</label>
-                <input type="text" id="latitude" placeholder="e.g., 45° N">
+                <label for="itemNotes">Object Observation Notes (Optional):</label>
+                <input type="text" id="itemNotes" placeholder="e.g., Crystal clear definition, 4 moons visible">
             </div>
             <div class="btn-group">
                 <button class="btn-add" id="submitBtn" onclick="stageObservation()">Log Object</button>
@@ -295,6 +313,7 @@
             <p><strong>Object:</strong> <span id="confBody"></span></p>
             <p><strong>Longitude:</strong> <span id="confLong"></span></p>
             <p><strong>Latitude:</strong> <span id="confLat"></span></p>
+            <p><strong>Object Notes:</strong> <span id="confItemNotes" style="color: #cbd5e1; font-style: italic;"></span></p>
             <p><strong>Timestamp (Adjusted):</strong> <span id="confTime" style="color: #38bdf8;"></span></p>
             <div class="btn-group">
                 <button class="btn-confirm" onclick="commitObservation()">Confirm & Add</button>
@@ -311,12 +330,19 @@
                         <th>Object/Body</th>
                         <th>Longitude</th>
                         <th>Latitude</th>
+                        <th>Observation Notes</th>
                         <th style="width: 80px;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="logTableBody">
                     </tbody>
             </table>
+
+            <div class="global-notes-section">
+                <label for="globalSessionNotes" style="color: var(--accent-color); font-size: 16px;">📁 Global Session Notes (Weather, Equipment, Conditions):</label>
+                <textarea id="globalSessionNotes" rows="4" placeholder="Write any overarching thoughts regarding tonight's tracking session here... (These save straight to your final text file)"></textarea>
+            </div>
+
             <button class="btn-download" onclick="downloadTXT()">Finish & Download TXT File</button>
         </div>
     </div>
@@ -326,10 +352,11 @@
     <h2>How to Use This Logger</h2>
     <ol>
         <li><strong>Configure Session Preferences:</strong> Type your target tracking location. Select whether to use your system's <code>Auto</code> time or pick a specific geographical region under <code>Manual Select</code>, then lock properties.</li>
-        <li><strong>Enter Celestial Data:</strong> Type your object coordinates into the operational matrix.</li>
-        <li><strong>Review Your Entry:</strong> Click <code>Log Object</code>. The system automatically stamps the transaction using your selected zone.</li>
-        <li><strong>Re-edit Rows:</strong> Hit a row's red <code>Edit</code> button to recall values into inputs. Resubmitting will update that specific index and refresh the timestamp to the current selected time zone matrix automatically.</li>
-        <li><strong>Export Your Log:</strong> Click <code>Finish & Download TXT File</code> to capture final run bounds and download your data file.</li>
+        <li><strong>Enter Celestial Data & Notes:</strong> Type your object coordinates. You can add specific contextual commentary for that object inside the <code>Object Observation Notes</code> field.</li>
+        <li><strong>Review and Save Your Entry:</strong> Click <code>Log Object</code>, check metrics on screen, and confirm.</li>
+        <li><strong>Re-edit Rows:</strong> Hit a row's red <code>Edit</code> button to pull values and notes back into inputs. Resubmitting will update that item and refresh the item's individual time log instantly.</li>
+        <li><strong>Add Overarching Notes:</strong> Use the large <code>Global Session Notes</code> text box at the bottom of the log table to describe atmospheric clarity, wind speed, telescope models, or general field events.</li>
+        <li><strong>Export Your Log:</strong> Click <code>Finish & Download TXT File</code> to compile all specific elements, runtime stats, table metrics, and your large text block neatly into a localized asset document.</li>
     </ol>
 </div>
 
@@ -358,7 +385,6 @@
         const mode = document.getElementById('tzMode').value;
         
         if (mode === 'auto') {
-            // Standard system output
             return now.getFullYear() + '-' + 
                 String(now.getMonth() + 1).padStart(2, '0') + '-' + 
                 String(now.getDate()).padStart(2, '0') + ' ' + 
@@ -366,7 +392,6 @@
                 String(now.getMinutes()).padStart(2, '0') + ':' + 
                 String(now.getSeconds()).padStart(2, '0');
         } else {
-            // Manual international translation execution via Intl APIs
             const chosenTz = document.getElementById('manualTzSelect').value;
             try {
                 const formatter = new Intl.DateTimeFormat('en-CA', {
@@ -376,14 +401,12 @@
                     hour12: false
                 });
                 
-                // Parts extraction to build standard YYYY-MM-DD HH:MM:SS layout safely
                 const parts = formatter.formatToParts(now);
                 const p = {};
                 parts.forEach(part => p[part.type] = part.value);
                 
                 return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}:${p.second}`;
             } catch (e) {
-                // Fallback safe mechanism
                 return now.toISOString().replace('T', ' ').substring(0, 19);
             }
         }
@@ -414,6 +437,7 @@
         const bodyInput = document.getElementById('body').value.trim();
         const longInput = document.getElementById('longitude').value.trim();
         const latInput = document.getElementById('latitude').value.trim();
+        const notesInput = document.getElementById('itemNotes').value.trim();
 
         if (!bodyInput || !longInput || !latInput) {
             alert("Please fill out all fields before logging!");
@@ -424,12 +448,14 @@
             timestamp: generateTimestamp(),
             body: bodyInput, 
             long: longInput, 
-            lat: latInput 
+            lat: latInput,
+            notes: notesInput || "None"
         };
 
         document.getElementById('confBody').textContent = tempObservation.body;
         document.getElementById('confLong').textContent = tempObservation.long;
         document.getElementById('confLat').textContent = tempObservation.lat;
+        document.getElementById('confItemNotes').textContent = tempObservation.notes;
         document.getElementById('confTime').textContent = tempObservation.timestamp;
 
         document.getElementById('entryForm').classList.add('hidden');
@@ -469,6 +495,7 @@
         document.getElementById('body').value = obs.body;
         document.getElementById('longitude').value = obs.long;
         document.getElementById('latitude').value = obs.lat;
+        document.getElementById('itemNotes').value = obs.notes === "None" ? "" : obs.notes;
 
         document.getElementById('formActionHeading').textContent = `Editing Item #${index + 1} (Time will refresh)`;
         document.getElementById('submitBtn').textContent = "Apply & Update Changes";
@@ -479,6 +506,7 @@
         document.getElementById('body').value = '';
         document.getElementById('longitude').value = '';
         document.getElementById('latitude').value = '';
+        document.getElementById('itemNotes').value = '';
     }
 
     function updateTable() {
@@ -492,6 +520,7 @@
                 <td style="font-weight: bold; color: var(--accent-color);">${escapeHTML(obs.body)}</td>
                 <td>${escapeHTML(obs.long)}</td>
                 <td>${escapeHTML(obs.lat)}</td>
+                <td style="color: #cbd5e1; font-style: italic; max-width: 250px; overflow-wrap: break-word;">${escapeHTML(obs.notes)}</td>
                 <td>
                     <button class="btn-edit" onclick="editRow(${index})">Edit</button>
                 </td>
@@ -513,24 +542,27 @@
         }
 
         const sessionEndTimeStr = generateTimestamp();
+        const globalNotesVal = document.getElementById('globalSessionNotes').value.trim() || "No custom session notes recorded.";
         const pad = (str, length) => str.padEnd(length, ' ').substring(0, length);
 
-        let txtContent = "=====================================================================\n";
-        txtContent += "                      ASTRONOMICAL OBSERVATIONS                      \n";
-        txtContent += "=====================================================================\n";
+        let txtContent = "=========================================================================================================================\n";
+        txtContent += "                                                ASTRONOMICAL OBSERVATIONS                                                \n";
+        txtContent += "=========================================================================================================================\n";
         txtContent += ` Location:          ${loggedLocation}\n`;
         txtContent += ` Time Zone:         ${activeTimeZone}\n`;
         txtContent += ` Session Started:   ${sessionStartTimeStr}\n`;
         txtContent += ` Session Ended:     ${sessionEndTimeStr}\n`;
-        txtContent += "---------------------------------------------------------------------\n";
-        txtContent += `${pad("Time Located", 21)} | ${pad("Object/Body", 18)} | ${pad("Longitude", 12)} | ${pad("Latitude", 12)}\n`;
-        txtContent += "-".repeat(69) + "\n";
+        txtContent += "-------------------------------------------------------------------------------------------------------------------------\n";
+        txtContent += ` GLOBAL SESSION NOTES:\n ${globalNotesVal.replace(/\n/g, '\n ')}\n`;
+        txtContent += "=========================================================================================================================\n";
+        txtContent += `${pad("Time Located", 21)} | ${pad("Object/Body", 18)} | ${pad("Longitude", 12)} | ${pad("Latitude", 12)} | Notes\n`;
+        txtContent += "-".repeat(121) + "\n";
 
         observations.forEach(obs => {
-            txtContent += `${pad(obs.timestamp, 21)} | ${pad(obs.body, 18)} | ${pad(obs.long, 12)} | ${pad(obs.lat, 12)}\n`;
+            txtContent += `${pad(obs.timestamp, 21)} | ${pad(obs.body, 18)} | ${pad(obs.long, 12)} | ${pad(obs.lat, 12)} | ${obs.notes}\n`;
         });
 
-        txtContent += "=====================================================================\n";
+        txtContent += "=========================================================================================================================\n";
         txtContent += `Total Objects Logged: ${observations.length}\n`;
 
         const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
@@ -548,4 +580,5 @@
 </script>
 
 </body>
-</html>
+</html> 
+ 
