@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astronomy Data Logger</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent-color: #38bdf8;
+            --border-color: #334155;
+            --success-color: #22c55e;
+            --danger-color: #ef4444;
+            --instruction-bg: #111827;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            text-align: center;
+            margin-top: 0;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: #0f172a;
+            color: var(--text-color);
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-add { background-color: var(--accent-color); color: #000; }
+        .btn-add:hover { background-color: #7dd3fc; }
+
+        .btn-confirm { background-color: var(--success-color); color: #fff; }
+        .btn-confirm:hover { background-color: #16a34a; }
+
+        .btn-cancel { background-color: var(--danger-color); color: #fff; }
+        .btn-cancel:hover { background-color: #dc2626; }
+
+        .btn-download { background-color: #a855f7; color: #fff; margin-top: 20px; width: 100%; }
+        .btn-download:hover { background-color: #9333ea; }
+
+        /* Confirmation Box Styling */
+        .confirmation-box {
+            background: #111827;
+            border: 1px solid var(--accent-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .confirmation-box p {
+            margin: 8px 0;
+            font-family: monospace;
+            font-size: 15px;
+        }
+
+        /* Table Styling */
+        .table-container {
+            margin-top: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #111827;
+            color: var(--accent-color);
+        }
+
+        /* Bottom Instructions Panel */
+        .instructions-panel {
+            max-width: 800px;
+            width: 100%;
+            background-color: var(--instruction-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            box-sizing: border-box;
+        }
+
+        .instructions-panel h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .instructions-panel ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .instructions-panel li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+            color: #cbd5e1;
+        }
+
+        .instructions-panel code {
+            background-color: var(--card-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #f1f5f9;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Astronomy Data Logger</h1>
+
+    <div id="entryForm">
+        <div class="form-group">
+            <label for="body">Object / Celestial Body:</label>
+            <input type="text" id="body" placeholder="e.g., Jupiter, Betelgeuse">
+        </div>
+        <div class="form-group">
+            <label for="longitude">Longitude / Azimuth:</label>
+            <input type="text" id="longitude" placeholder="e.g., 180° S">
+        </div>
+        <div class="form-group">
+            <label for="latitude">Latitude / Altitude:</label>
+            <input type="text" id="latitude" placeholder="e.g., 45° N">
+        </div>
+        <div class="btn-group">
+            <button class="btn-add" onclick="stageObservation()">Log Object</button>
+        </div>
+    </div>
+
+    <div id="confirmationStep" class="confirmation-box hidden">
+        <h3 style="margin-top:0; color: var(--accent-color);">Confirm Details</h3>
+        <p><strong>Object:</strong> <span id="confBody"></span></p>
+        <p><strong>Longitude:</strong> <span id="confLong"></span></p>
+        <p><strong>Latitude:</strong> <span id="confLat"></span></p>
+        <div class="btn-group">
+            <button class="btn-confirm" onclick="commitObservation()">Confirm & Add</button>
+            <button class="btn-cancel" onclick="cancelObservation()">Edit / Cancel</button>
+        </div>
+    </div>
+
+    <div id="tableContainer" class="table-container hidden">
+        <h3>Current Logged Objects</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Object/Body</th>
+                    <th>Longitude</th>
+                    <th>Latitude</th>
+                </tr>
+            </thead>
+            <tbody id="logTableBody">
+                </tbody>
+        </table>
+        <button class="btn-download" onclick="downloadTXT()">Finish & Download TXT File</button>
+    </div>
+</div>
+
+<div class="instructions-panel">
+    <h2>How to Use This Logger</h2>
+    <ol>
+        <li><strong>Enter the Celestial Data:</strong> Fill out the object name along with its longitude/azimuth and latitude/altitude in the input boxes.</li>
+        <li><strong>Review Your Entry:</strong> Click the <code>Log Object</code> button. A confirmation area will appear displaying your typed data to double-check for errors.</li>
+        <li><strong>Save or Modify:</strong> Click <code>Confirm & Add</code> to officially push the entry to your active table session, or click <code>Edit / Cancel</code> to return to the input screen and make fixes.</li>
+        <li><strong>Export Your Log:</strong> Once you have added all your coordinates, scroll down to the active list and click the purple <code>Finish & Download TXT File</code> button. This compiles your session data into a neat, padded text document saved straight to your downloads folder.</li>
+    </ol>
+</div>
+
+<script>
+    let observations = [];
+    let tempObservation = null;
+
+    function stageObservation() {
+        const bodyInput = document.getElementById('body').value.trim();
+        const longInput = document.getElementById('longitude').value.trim();
+        const latInput = document.getElementById('latitude').value.trim();
+
+        if (!bodyInput || !longInput || !latInput) {
+            alert("Please fill out all fields before logging!");
+            return;
+        }
+
+        tempObservation = { body: bodyInput, long: longInput, lat: latInput };
+
+        document.getElementById('confBody').textContent = tempObservation.body;
+        document.getElementById('confLong').textContent = tempObservation.long;
+        document.getElementById('confLat').textContent = tempObservation.lat;
+
+        document.getElementById('entryForm').classList.add('hidden');
+        document.getElementById('confirmationStep').classList.remove('hidden');
+    }
+
+    function commitObservation() {
+        observations.push(tempObservation);
+        updateTable();
+        clearInputs();
+
+        document.getElementById('confirmationStep').classList.add('hidden');
+        document.getElementById('entryForm').classList.remove('hidden');
+        document.getElementById('tableContainer').classList.remove('hidden');
+
+        tempObservation = null;
+    }
+
+    function cancelObservation() {
+        document.getElementById('confirmationStep').classList.add('hidden');
+        document.getElementById('entryForm').classList.remove('hidden');
+        tempObservation = null;
+    }
+
+    function clearInputs() {
+        document.getElementById('body').value = '';
+        document.getElementById('longitude').value = '';
+        document.getElementById('latitude').value = '';
+    }
+
+    function updateTable() {
+        const tbody = document.getElementById('logTableBody');
+        tbody.innerHTML = '';
+
+        observations.forEach(obs => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${escapeHTML(obs.body)}</td>
+                <td>${escapeHTML(obs.long)}</td>
+                <td>${escapeHTML(obs.lat)}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function escapeHTML(str) {
+        return str.replace(/[&<>'"]/g, 
+            tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+        );
+    }
+
+    function downloadTXT() {
+        if (observations.length === 0) {
+            alert("No data available to download.");
+            return;
+        }
+
+        const pad = (str, length) => str.padEnd(length, ' ').substring(0, length);
+
+        let txtContent = "=====================================================\n";
+        txtContent += "               ASTRONOMICAL OBSERVATIONS             \n";
+        txtContent += "=====================================================\n";
+        txtContent += `${pad("Object/Body", 20)} | ${pad("Longitude", 15)} | ${pad("Latitude", 15)}\n`;
+        txtContent += "-".repeat(57) + "\n";
+
+        observations.forEach(obs => {
+            txtContent += `${pad(obs.body, 20)} | ${pad(obs.long, 15)} | ${pad(obs.lat, 15)}\n`;
+        });
+
+        txtContent += "=====================================================\n";
+        txtContent += `Total Objects Logged: ${observations.length}\n`;
+
+        const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        
+        link.setAttribute("href", url);
+        link.setAttribute("download", "astronomy_observations.txt");
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+</body>
+</html> 
+ 
