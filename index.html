@@ -28,7 +28,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 950px;
             width: 100%;
             background: var(--card-bg);
             padding: 30px;
@@ -103,7 +103,6 @@
         .btn-lock { background-color: var(--success-color); color: white; width: 100%; }
         .btn-lock:hover { background-color: #16a34a; }
 
-        /* Setup/Metadata Area */
         .setup-box {
             background-color: #111827;
             border: 1px dashed var(--border-color);
@@ -112,7 +111,20 @@
             margin-bottom: 25px;
         }
 
-        /* Confirmation Box Styling */
+        .meta-display-bar {
+            background-color: #111827;
+            padding: 12px 20px;
+            border-radius: 6px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 14px;
+            color: #94a3b8;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            border-left: 4px solid var(--accent-color);
+        }
+
         .confirmation-box {
             background: #111827;
             border: 1px solid var(--accent-color);
@@ -127,7 +139,6 @@
             font-size: 15px;
         }
 
-        /* Table Styling */
         .table-container {
             margin-top: 30px;
             overflow-x: auto;
@@ -151,9 +162,8 @@
             color: var(--accent-color);
         }
 
-        /* Bottom Instructions Panel */
         .instructions-panel {
-            max-width: 900px;
+            max-width: 950px;
             width: 100%;
             background-color: var(--instruction-bg);
             border: 1px solid var(--border-color);
@@ -208,9 +218,11 @@
     </div>
 
     <div id="loggerMain" class="hidden">
-        <p style="margin-top: 0; font-size: 14px; color: #94a3b8;">
-            📍 Logging session location: <strong id="activeLocationDisplay" style="color: var(--accent-color);"></strong>
-        </p>
+        
+        <div class="meta-display-bar">
+            <span>📍 <strong>Location:</strong> <span id="lblLocation" style="color:var(--text-color)"></span></span>
+            <span>⏱️ <strong>Session Started:</strong> <span id="lblStartTime" style="color:var(--text-color)"></span></span>
+        </div>
 
         <div id="entryForm">
             <div class="form-group">
@@ -235,7 +247,7 @@
             <p><strong>Object:</strong> <span id="confBody"></span></p>
             <p><strong>Longitude:</strong> <span id="confLong"></span></p>
             <p><strong>Latitude:</strong> <span id="confLat"></span></p>
-            <p><strong>Timestamp (Auto):</strong> <span id="confTime" style="color: #94a3b8;"></span></p>
+            <p><strong>Located Time (Auto):</strong> <span id="confTime" style="color: #38bdf8;"></span></p>
             <div class="btn-group">
                 <button class="btn-confirm" onclick="commitObservation()">Confirm & Add</button>
                 <button class="btn-cancel" onclick="cancelObservation()">Edit / Cancel</button>
@@ -247,8 +259,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Date & Time</th>
-                        <th>Location</th>
+                        <th>Time Located</th>
                         <th>Object/Body</th>
                         <th>Longitude</th>
                         <th>Latitude</th>
@@ -265,11 +276,11 @@
 <div class="instructions-panel">
     <h2>How to Use This Logger</h2>
     <ol>
-        <li><strong>Set Location First:</strong> Type in your current observation point or coordinates and click <code>Lock Location & Start Session</code> to open up the logging toolkit.</li>
-        <li><strong>Enter Celestial Data:</strong> Fill out the object name along with its directional coordinates.</li>
-        <li><strong>Review Your Entry:</strong> Click the <code>Log Object</code> button. The web page will capture the exact current timestamp and show you a final confirmation preview window.</li>
-        <li><strong>Save or Modify:</strong> Click <code>Confirm & Add</code> to push the item into your active list, or click <code>Edit / Cancel</code> to safely go back and correct typos.</li>
-        <li><strong>Export Your Log:</strong> Click the purple <code>Finish & Download TXT File</code> button at the bottom of the table to generate a fully organized tracking document saved directly to your hard drive.</li>
+        <li><strong>Set Location First:</strong> Type your tracking area and hit <code>Lock Location & Start Session</code>. This sets your global location and captures your exact session <strong>Start Time</strong>.</li>
+        <li><strong>Enter Celestial Data:</strong> Type your target object information into the coordinates fields.</li>
+        <li><strong>Review Your Entry:</strong> Click <code>Log Object</code>. The system automatically captures the exact timestamp the object was **Located**. Check the parameters on screen.</li>
+        <li><strong>Save or Modify:</strong> Click <code>Confirm & Add</code> to populate your spreadsheet list, or click <code>Edit / Cancel</code> to safely roll back and re-type the metrics.</li>
+        <li><strong>Export Your Log:</strong> Once completed with all records, click the purple <code>Finish & Download TXT File</code> button. This stamps your final session **End Time**, computes runtime, and generates a formatted logging sheet file.</li>
     </ol>
 </div>
 
@@ -277,6 +288,17 @@
     let observations = [];
     let tempObservation = null;
     let loggedLocation = "";
+    let sessionStartTimeStr = "";
+
+    function generateTimestamp() {
+        const now = new Date();
+        return now.getFullYear() + '-' + 
+            String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+            String(now.getDate()).padStart(2, '0') + ' ' + 
+            String(now.getHours()).padStart(2, '0') + ':' + 
+            String(now.getMinutes()).padStart(2, '0') + ':' + 
+            String(now.getSeconds()).padStart(2, '0');
+    }
 
     function lockLocation() {
         const locInput = document.getElementById('sessionLocation').value.trim();
@@ -285,9 +307,11 @@
             return;
         }
         loggedLocation = locInput;
-        document.getElementById('activeLocationDisplay').textContent = loggedLocation;
+        sessionStartTimeStr = generateTimestamp();
         
-        // Hide setup box, reveal log interface
+        document.getElementById('lblLocation').textContent = loggedLocation;
+        document.getElementById('lblStartTime').textContent = sessionStartTimeStr;
+        
         document.getElementById('setupSection').classList.add('hidden');
         document.getElementById('loggerMain').classList.remove('hidden');
     }
@@ -302,18 +326,8 @@
             return;
         }
 
-        // Capture local system date and time right at the moment of tracking
-        const now = new Date();
-        const timestampStr = now.getFullYear() + '-' + 
-            String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-            String(now.getDate()).padStart(2, '0') + ' ' + 
-            String(now.getHours()).padStart(2, '0') + ':' + 
-            String(now.getMinutes()).padStart(2, '0') + ':' + 
-            String(now.getSeconds()).padStart(2, '0');
-
         tempObservation = { 
-            timestamp: timestampStr,
-            location: loggedLocation,
+            timestamp: generateTimestamp(),
             body: bodyInput, 
             long: longInput, 
             lat: latInput 
@@ -360,7 +374,6 @@
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td style="color: #94a3b8; font-family: monospace;">${escapeHTML(obs.timestamp)}</td>
-                <td>${escapeHTML(obs.location)}</td>
                 <td style="font-weight: bold; color: var(--accent-color);">${escapeHTML(obs.body)}</td>
                 <td>${escapeHTML(obs.long)}</td>
                 <td>${escapeHTML(obs.lat)}</td>
@@ -381,19 +394,24 @@
             return;
         }
 
+        const sessionEndTimeStr = generateTimestamp();
         const pad = (str, length) => str.padEnd(length, ' ').substring(0, length);
 
-        let txtContent = "=========================================================================================\n";
-        txtContent += "                               ASTRONOMICAL OBSERVATIONS                                 \n";
-        txtContent += "=========================================================================================\n";
-        txtContent += `${pad("Date & Time", 21)} | ${pad("Location", 22)} | ${pad("Object/Body", 18)} | ${pad("Longitude", 12)} | ${pad("Latitude", 12)}\n`;
-        txtContent += "-".repeat(97) + "\n";
+        let txtContent = "=====================================================================\n";
+        txtContent += "                      ASTRONOMICAL OBSERVATIONS                      \n";
+        txtContent += "=====================================================================\n";
+        txtContent += ` Location:          ${loggedLocation}\n`;
+        txtContent += ` Session Started:   ${sessionStartTimeStr}\n`;
+        txtContent += ` Session Ended:     ${sessionEndTimeStr}\n`;
+        txtContent += "---------------------------------------------------------------------\n";
+        txtContent += `${pad("Time Located", 21)} | ${pad("Object/Body", 18)} | ${pad("Longitude", 12)} | ${pad("Latitude", 12)}\n`;
+        txtContent += "-".repeat(69) + "\n";
 
         observations.forEach(obs => {
-            txtContent += `${pad(obs.timestamp, 21)} | ${pad(obs.location, 22)} | ${pad(obs.body, 18)} | ${pad(obs.long, 12)} | ${pad(obs.lat, 12)}\n`;
+            txtContent += `${pad(obs.timestamp, 21)} | ${pad(obs.body, 18)} | ${pad(obs.long, 12)} | ${pad(obs.lat, 12)}\n`;
         });
 
-        txtContent += "=========================================================================================\n";
+        txtContent += "=====================================================================\n";
         txtContent += `Total Objects Logged: ${observations.length}\n`;
 
         const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
@@ -411,5 +429,5 @@
 </script>
 
 </body>
-</html> 
+</html>  
  
